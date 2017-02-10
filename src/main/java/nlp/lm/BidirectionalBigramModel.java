@@ -19,7 +19,7 @@ enum ModelType {
     BIDIRECTIONAL
 }
 
-public class BidrectionalBigramModel {
+public class BidirectionalBigramModel {
 
     /** Unigram model that maps a token to its unigram probability */
     public Map<String, DoubleValue> unigramMapForward = null;
@@ -57,7 +57,7 @@ public class BidrectionalBigramModel {
     /** Initialize model with empty hashmaps with initial
      *  unigram entries for sentence start (<S>), sentence end (</S>)
      *  and unknown tokens */
-    public BidrectionalBigramModel(ModelType modelType) {
+    public BidirectionalBigramModel(ModelType modelType) {
         unigramMapForward = new HashMap<String, DoubleValue>();
         unigramMapBackward = new HashMap<String, DoubleValue>();
 
@@ -486,7 +486,7 @@ public class BidrectionalBigramModel {
 				   " (# words = " + wordCount(testSentences) + ")");
 		System.out.println("--------------------------------------- FORWARD MODEL -------------------------------------");
 		// Create a bigram model and train it.
-		BidrectionalBigramModel forwardModel = new BidrectionalBigramModel(ModelType.FORWARD);
+		BidirectionalBigramModel forwardModel = new BidirectionalBigramModel(ModelType.FORWARD);
 		System.out.println("Training...");
 		forwardModel.train(trainSentences);
 		// Test on training data using test and test2
@@ -498,7 +498,7 @@ public class BidrectionalBigramModel {
 		forwardModel.test2(testSentences);
 
         System.out.println("--------------------------------------- BACKWARD MODEL -------------------------------------");
-        BidrectionalBigramModel backwardModel = new BidrectionalBigramModel(ModelType.BACKWARD);
+        BidirectionalBigramModel backwardModel = new BidirectionalBigramModel(ModelType.BACKWARD);
         System.out.println("Training...");
         backwardModel.train(trainSentences);
         // Test on training data using test and test2
@@ -510,7 +510,7 @@ public class BidrectionalBigramModel {
         backwardModel.test2(testSentences);
 
         System.out.println("--------------------------------------- BIDIRECTIONAL MODEL -------------------------------------");
-        BidrectionalBigramModel bidirectionalModel = new BidrectionalBigramModel(ModelType.BIDIRECTIONAL);
+        BidirectionalBigramModel bidirectionalModel = new BidirectionalBigramModel(ModelType.BIDIRECTIONAL);
         bidirectionalModel.lambda3 = 0.5;
         bidirectionalModel.lambda4 = 0.5;
         System.out.println("Training...");

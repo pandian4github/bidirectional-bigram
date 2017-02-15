@@ -330,9 +330,9 @@ public class BidirectionalBigramModel {
             totalNumTokens += sentence.size();
             double sentenceLogProb = 0.0;
             if (modelType == ModelType.FORWARD) {
-                sentenceLogProb = sentenceLogProb2(sentence, unigramMapForward, bigramMapForward, "<S>", "</S>");
+                sentenceLogProb = sentenceLogProb2(sentence, unigramMapForward, bigramMapForward, "<S>");
             } else if (modelType == ModelType.BACKWARD) {
-                sentenceLogProb = sentenceLogProb2(reverseSentence(sentence), unigramMapBackward, bigramMapBackward, "</S>", "<S>");
+                sentenceLogProb = sentenceLogProb2(reverseSentence(sentence), unigramMapBackward, bigramMapBackward, "</S>");
             } else if (modelType == ModelType.BIDIRECTIONAL) {
                 sentenceLogProb = sentenceLogProbBidirectional(sentence);
             }
@@ -351,8 +351,9 @@ public class BidirectionalBigramModel {
         assert (forwardProbs.length == backwardProbs.length);
 
         double sentenceLogProb = 0.0;
-        for (int index = 0; index < forwardProbs.length; index++) {
-            double logProb = Math.log(lambda3 * forwardProbs[index] + lambda4 * backwardProbs[index]);
+        int len = forwardProbs.length;
+        for (int index = 0; index < len; index++) {
+            double logProb = Math.log(lambda3 * forwardProbs[index] + lambda4 * backwardProbs[len-index-1]);
             sentenceLogProb += logProb;
         }
 
@@ -360,8 +361,8 @@ public class BidirectionalBigramModel {
     }
 
     /** Like sentenceLogProb but excludes predicting end-of-sentence when computing prob */
-    public double sentenceLogProb2 (List<String> sentence, Map<String, DoubleValue> unigramMap, Map<String, DoubleValue> bigramMap, String startToken, String endToken) {
-        String prevToken = "<S>";
+    public double sentenceLogProb2 (List<String> sentence, Map<String, DoubleValue> unigramMap, Map<String, DoubleValue> bigramMap, String startToken) {
+        String prevToken = startToken;
         double sentenceLogProb = 0;
         for (String token : sentence) {
             DoubleValue unigramVal = unigramMap.get(token);

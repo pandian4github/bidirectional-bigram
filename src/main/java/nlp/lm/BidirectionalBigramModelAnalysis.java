@@ -13,13 +13,13 @@ import java.util.Map;
  * with a unigram model for smoothing.
 */
 
-enum ModelType {
-    FORWARD,
-    BACKWARD,
-    BIDIRECTIONAL
-}
+//enum ModelType {
+//    FORWARD,
+//    BACKWARD,
+//    BIDIRECTIONAL
+//}
 
-public class BidirectionalBigramModel {
+public class BidirectionalBigramModelAnalysis {
 
     /** Unigram model that maps a token to its unigram probability */
     public Map<String, DoubleValue> unigramMapForward = null;
@@ -57,7 +57,7 @@ public class BidirectionalBigramModel {
     /** Initialize model with empty hashmaps with initial
      *  unigram entries for sentence start (<S>), sentence end (</S>)
      *  and unknown tokens */
-    public BidirectionalBigramModel(ModelType modelType) {
+    public BidirectionalBigramModelAnalysis(ModelType modelType) {
         unigramMapForward = new HashMap<String, DoubleValue>();
         unigramMapBackward = new HashMap<String, DoubleValue>();
 
@@ -323,7 +323,7 @@ public class BidirectionalBigramModel {
     }
 
     /** Like test1 but excludes predicting end-of-sentence when computing perplexity */
-    public void test2 (List<List<String>> sentences) {
+    public double test2 (List<List<String>> sentences) {
         double totalLogProb = 0;
         double totalNumTokens = 0;
         for (List<String> sentence : sentences) {
@@ -342,6 +342,7 @@ public class BidirectionalBigramModel {
         }
         double perplexity = Math.exp(-totalLogProb / totalNumTokens);
         System.out.println("Word Perplexity = " + perplexity );
+        return perplexity;
     }
 
     /** Like sentenceLogProb but excludes predicting end-of-sentence when computing prob */
@@ -511,20 +512,47 @@ public class BidirectionalBigramModel {
         backwardModel.test(testSentences);
         backwardModel.test2(testSentences);
 
-        System.out.println("--------------------------------------- BIDIRECTIONAL MODEL -------------------------------------");
-        BidirectionalBigramModel bidirectionalModel = new BidirectionalBigramModel(ModelType.BIDIRECTIONAL);
-        bidirectionalModel.lambda3 = 0.5;
-        bidirectionalModel.lambda4 = 0.5;
-        System.out.println("Training...");
-        bidirectionalModel.train(trainSentences);
-        // Test on training data using test and test2
-//        bidirectionalModel.test(trainSentences);
-        bidirectionalModel.test2(trainSentences);
-        System.out.println("Testing...");
-        // Test on test data using test and test2
-//        bidirectionalModel.test(testSentences);
-        bidirectionalModel.test2(testSentences);
-//        System.out.println(bidirectionalModel.tokenCountForward + " " + bidirectionalModel.tokenCountBackward);
+        /*
+         * l1 and l2 - interpolation constants for forward and backward models respectively.
+         */
+        double trainingPerplexities[] = new double[50];
+        double testPerplexities[] = new double[50];
+        double l1s[] = new double[50];
+        int index = 0;
+        for (double l1 = 0.05; l1 < 1.0; l1 += 0.05) {
+            l1 = (double) Math.round(l1 * 100) / 100;
+            double l2 = 1.0 - l1;
+            l2 = (double) Math.round(l2 * 100) / 100;
+            System.out.println("--------------------------- BIDIRECTIONAL MODEL " + l1 + " for forward and " + l2 + " for backward -------------------------");
+            BidirectionalBigramModelAnalysis bidirectionalModelAnalysis = new BidirectionalBigramModelAnalysis(ModelType.BIDIRECTIONAL);
+            bidirectionalModelAnalysis.lambda3 = l1;
+            bidirectionalModelAnalysis.lambda4 = l2;
+            System.out.println("Training...");
+            bidirectionalModelAnalysis.train(trainSentences);
+            // Test on training data using test and test2
+            trainingPerplexities[index] = bidirectionalModelAnalysis.test2(trainSentences);
+            System.out.println("Testing...");
+            // Test on test data using test and test2
+            testPerplexities[index] = bidirectionalModelAnalysis.test2(testSentences);
+            l1s[index] = l1;
+            index++;
+        }
+
+        System.out.print("Interpolation weights for forward: ");
+        for (int i = 0; i < index; i++) {
+            System.out.print(l1s[i] + ", ");
+        }
+        System.out.println();
+        System.out.print("Training perplexities: ");
+        for (int i = 0; i < index; i++) {
+            System.out.print(trainingPerplexities[i] + ", ");
+        }
+        System.out.println();
+        System.out.print("Test perplexities: ");
+        for (int i = 0; i < index; i++) {
+            System.out.print(testPerplexities[i] + ", ");
+        }
+        System.out.println();
     }
 
 }
